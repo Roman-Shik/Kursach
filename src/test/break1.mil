@@ -1,0 +1,9 @@
+BEGIN
+    i := 10;
+
+    WHILE i != 20 DO
+        BREAK
+    OD;
+
+    WRITE(i)
+END

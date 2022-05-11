@@ -56,6 +56,30 @@ void Parser::statement()
 		expression();
 		codegen_->emit(STORE, varAddress);
 	}
+	else if(match(T_BREAK))
+	{
+		if(insideWhile_ > -1)
+		{
+			sawBreak_[insideWhile_] = true;
+			breakAddres_[insideWhile_].push_back(codegen_->reserve());
+		}
+		else
+		{
+			reportError("BREAK outside WHILE found.");
+		}
+	}
+	else if(match(T_CONTINUE))
+	{
+		if(insideWhile_ > -1)
+		{
+			sawContinue_[insideWhile_] = true;
+			continueAddres_[insideWhile_].push_back(codegen_->reserve());
+		}
+		else
+		{
+			reportError("CONTINUE outside WHILE found.");
+		}
+	}
 	// Если встретили IF, то затем должно следовать условие. 
 	// На вершине стека лежит 1 или 0 в зависимости от выполнения условия.
 	// Затем зарезервируем место для условного перехода JUMP_NO к 
@@ -92,6 +116,7 @@ void Parser::statement()
 		mustBe(T_FI);
 	}
 	else if(match(T_WHILE)) {
+		insideWhile_++;
 		// Запоминаем адрес начала проверки условия.
 		int conditionAddress = codegen_->getCurrentAddress();
 		relation();
@@ -103,9 +128,30 @@ void Parser::statement()
 		mustBe(T_OD);
 		// переходим по адресу проверки условия
 		codegen_->emit(JUMP, conditionAddress);
+		if(sawContinue_[insideWhile_])
+		{
+			for(std::vector<int>::iterator i = continueAddres_[insideWhile_].begin();
+				i != continueAddres_[insideWhile_].end(); i++)
+			{
+				codegen_->emitAt(*i, JUMP, conditionAddress);
+			}
+			continueAddres_[insideWhile_].clear();
+			sawContinue_[insideWhile_] = false;
+		}
 		// заполняем зарезервированный адрес инструкцией условного 
 		// перехода на следующий за циклом оператор
 		codegen_->emitAt(jumpNoAddress, JUMP_NO, codegen_->getCurrentAddress());
+		if(sawBreak_[insideWhile_])
+		{
+			for(std::vector<int>::iterator i = breakAddres_[insideWhile_].begin();
+				i != breakAddres_[insideWhile_].end(); i++)
+			{
+				codegen_->emitAt(*i, JUMP, codegen_->getCurrentAddress());
+			}
+			breakAddres_[insideWhile_].clear();
+			sawContinue_[insideWhile_] = false;
+		}
+		insideWhile_--;
 	}
 	else if(match(T_WRITE)) {
 		mustBe(T_LPAREN);

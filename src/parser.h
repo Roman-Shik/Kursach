@@ -6,9 +6,13 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include <array>
 #include <map>
 
 using namespace std;
+
+#define MAXIMUM_NESTING 100
 
 /* Синтаксический анализатор.
  *
@@ -39,7 +43,8 @@ public:
 	//
 	// Конструктор создает экземпляры лексического анализатора и генератора.
 	Parser(const string& fileName, istream& input)
-		: output_(cout), error_(false), lastVar_(0)
+		: output_(cout), error_(false), lastVar_(0),
+		insideWhile_(-1)
 	{
 		scanner_ = new Scanner(fileName, input);
 		codegen_ = new CodeGen(output_);
@@ -118,6 +123,12 @@ private:
 		     // выводим ли список команд после разбора или нет
 	VarTable variables_; // ассоциативный массив переменных программы
 	int lastVar_; // номер последней записанной переменной
+
+	int insideWhile_; // находимся ли мы в цикле
+	std::array<bool, MAXIMUM_NESTING> sawBreak_; // был встречен break в очередном while
+	std::array<bool, MAXIMUM_NESTING> sawContinue_; // был встречен continue в очередном while
+	std::array< std::vector<int>, MAXIMUM_NESTING > breakAddres_; // Адреса встреченных break
+	std::array< std::vector<int>, MAXIMUM_NESTING > continueAddres_; // Адреса встреченных continue
 };
 
 #endif

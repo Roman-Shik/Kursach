@@ -76,6 +76,8 @@ public:
 		keywords_["od"] = T_OD;
 		keywords_["write"] = T_WRITE;
 		keywords_["read"] = T_READ;
+		keywords_["break"] = T_BREAK;
+		keywords_["continue"] = T_CONTINUE;
 
 		nextChar();
 	}

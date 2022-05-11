@@ -1,0 +1,11 @@
+BEGIN
+    i := 10;
+
+    WHILE i != 15 DO
+        i := i + 1;
+        CONTINUE;
+        i := 10
+    OD;
+
+    WRITE(i)
+END

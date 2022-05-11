@@ -1,0 +1,13 @@
+BEGIN
+    i := 10;
+
+    WHILE i != 15 DO
+        IF i != 16 THEN
+            i := i + 1;
+            CONTINUE
+        FI;
+        i := 1
+    OD;
+
+    WRITE(i)
+END
